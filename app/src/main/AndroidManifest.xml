@@ -3,6 +3,7 @@
     package="ch.unibe.msa.kotlintest" >
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION"/>
 
     <application
         android:allowBackup="true"
@@ -19,11 +20,8 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".SensorService"
-            android:enabled="true"
-            android:exported="true" >
-        </service>
+        <service android:name=".SensorService"></service>
+        <service android:name=".ActivityRecognitionService"></service>
     </application>
 
 </manifest>

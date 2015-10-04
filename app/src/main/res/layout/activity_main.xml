@@ -5,6 +5,13 @@
     android:orientation="vertical"
     android:padding="20dip">
 
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter API endpoint address"
+        android:id="@+id/txt_api_endpoint"/>
+
+
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -16,5 +23,11 @@
         android:layout_height="wrap_content"
         android:text="End Service"
         android:id="@+id/btn_stop_service" />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:paddingTop="20dp"
+        android:id="@+id/lbl_status"/>
 
 </LinearLayout>

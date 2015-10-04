@@ -22,20 +22,21 @@ class SensorService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val rate = intent?.extras?.getInt("updateRate", 999)
-        toast("Rate: $rate")
+        val endpoint = intent?.extras?.getString("endpoint") ?: "localhost"
+        toast("Endpoint: $endpoint")
 
         if (running) {
             toast("Service is already running")
         } else {
             sensorManager.registerListener(listener, accelerometer, SensorManager.SENSOR_DELAY_NORMAL)
+            batchSender.endpoint = endpoint
             batchSender.start()
 
             running = true
             toast("Service Started")
         }
 
-        return Service.START_STICKY
+        return Service.START_NOT_STICKY
     }
 
     override fun onBind(intent: Intent): IBinder? {

@@ -10,6 +10,7 @@ import kotlin.concurrent.scheduleAtFixedRate
  */
 class BatchSender(val queue: BlockingQueue<IJsonable> = LinkedBlockingQueue<IJsonable>()) {
 
+    var endpoint: String = "http://192.168.0.109:3000"
     var timer = Timer()
 
     public fun start() {
@@ -32,7 +33,7 @@ class BatchSender(val queue: BlockingQueue<IJsonable> = LinkedBlockingQueue<IJso
         val jsonData = data.map { it.toJson() }.join(",", "[", "]")
 
         if (jsonData.length() > 0) {
-            DataSender("http://192.168.0.109:3000").send(jsonData)
+            DataSender(endpoint).send(jsonData)
             println("Sending ${data.size()} nodes")
         }
     }
