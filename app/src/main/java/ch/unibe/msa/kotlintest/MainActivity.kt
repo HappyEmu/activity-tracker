@@ -28,18 +28,19 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks, GoogleApiC
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val settings = Settings.retrieve(ctx)
+        Settings.load(ctx)
 
         lblStatus = find<TextView>(R.id.lbl_status)
         lblStatus?.text = "false"
         val txtEndPoint = find<EditText>(R.id.txt_api_endpoint)
-        txtEndPoint.setText(settings?.endpoint ?: "")
+        txtEndPoint.setText(Settings.endpoint)
 
         // Set up UI
         find<Button>(R.id.btn_start_service).onClick {
             val endPointAddress = txtEndPoint.text.toString()
-            Settings("","", endPointAddress).save(ctx)
-            //startService(intentFor<SensorService>("endpoint" to endPointAddress))
+            Settings.endpoint = endPointAddress
+            Settings.save(ctx)
+            startService(intentFor<SensorService>())
         }
         find<Button>(R.id.btn_stop_service).onClick { stopService(intentFor<SensorService>()) }
 

@@ -12,6 +12,7 @@ class DataSender(val url: String) {
 
     fun send(data: String): Response<String>? {
         try {
+            println("Sending data to $url: $data")
             val response = DataSender.client.post(url).param("data", data).asString()
             return response
         } catch(e: WebbException) { return null }

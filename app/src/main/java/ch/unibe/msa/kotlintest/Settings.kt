@@ -2,19 +2,23 @@ package ch.unibe.msa.kotlintest
 
 import android.content.Context
 
-data class Settings(val username: String, val password: String, val endpoint: String) {
+object Settings {
+    var endpoint: String = "localhost"
+    var username: String = "defaultUser"
+    var password: String = "defaultPass"
 
     fun save(context: Context) {
         val content = "$username;$password;$endpoint"
         context.writeToFile("settings", content)
     }
 
-    companion object {
-        fun retrieve(context: Context) : Settings? {
-            val text = context.readFile("settings") ?: return null
-            val parts = text.split(';')
+    fun load(context: Context) {
+        val text = context.readFile("settings") ?: return
+        val parts = text.split(';')
 
-            return Settings(parts[0], parts[1], parts[2])
-        }
+        username = parts[0]
+        password = parts[1]
+        endpoint = parts[2]
     }
 }
+

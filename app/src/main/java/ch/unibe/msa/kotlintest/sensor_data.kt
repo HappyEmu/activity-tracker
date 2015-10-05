@@ -2,6 +2,7 @@ package ch.unibe.msa.kotlintest
 
 import android.hardware.SensorEvent
 import com.github.salomonbrys.kotson.jsonObject
+import java.text.SimpleDateFormat
 import java.util.*
 
 interface IJsonable {
@@ -11,18 +12,31 @@ interface IJsonable {
 data class AccelerometerData(val timestamp: Date,
                              val ax: Float, val ay: Float, val az: Float) : IJsonable {
     override fun toJson(): String {
-        return jsonObject("timestamp" to timestamp.time, "ax" to ax, "ay" to ay, "az" to az).toString()
+        return jsonObject("timestamp" to timestamp.toJsonDate(), "type" to "acceleration",
+                "ax" to ax, "ay" to ay, "az" to az).toString()
     }
 }
 
 data class GpsData(val timestamp: Date,
                    val lat: String, val long: String) : IJsonable {
     override fun toJson(): String {
-        throw UnsupportedOperationException()
+        return jsonObject("timestamp" to timestamp.toJsonDate(), "type" to "location",
+                "lat" to lat, "long" to long).toString()
+    }
+}
+
+data class ActivityData(val timestamp: Date, val text: String) : IJsonable {
+    override fun toJson(): String {
+        return jsonObject("timestamp" to timestamp.toJsonDate(), "type" to "activity", "text" to text).toString()
     }
 }
 
 fun SensorEvent.toAccelData(): AccelerometerData {
-    val date = Date(this.timestamp / 1000000)
+    val date = Date()
     return AccelerometerData(date, this.values[0], this.values[1], this.values[2])
+}
+
+fun Date.toJsonDate(): String {
+    val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
+    return formatter.format(this)
 }
