@@ -13,6 +13,7 @@ import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
+import com.github.salomonbrys.kotson.jsonObject
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
@@ -28,7 +29,13 @@ import java.util.*
 class MainActivity : Activity(), ConnectionCallbacks, OnConnectionFailedListener, AnkoLogger, LocationListener {
 
     fun handleUpdate(loc: Location?) {
-        find<TextView>(R.id.txt_history).append("\n${Date().format("HH:mm:ss")}: Loc: ${loc?.latitude}, ${loc?.longitude}")
+        find<TextView>(R.id.txt_history).append("\n${Date().format("HH:mm:ss")}: Loc: ${loc?.latitude}, ${loc?.longitude}, Activity: ${Settings.currentActivity}")
+        async {
+            val sendData = listOf<IJsonable>(ActivityData(Date(), Settings.currentActivity))
+            println("Sending data in thread")
+            var sendText = GpsData(Date(),loc,Settings.currentActivity)
+            DataSender(Settings.endpoint).send(sendText.toJson());
+        }
     }
 
     override fun onLocationChanged(loc: Location?) {
@@ -63,6 +70,9 @@ class MainActivity : Activity(), ConnectionCallbacks, OnConnectionFailedListener
                 LocationServices.FusedLocationApi.removeLocationUpdates(gApiClient, this)
 
                 //Stop Activity tracking
+                val intent = intentFor<ActivityRecognitionService>()
+                val callbackIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+                ActivityRecognition.ActivityRecognitionApi.removeActivityUpdates(gApiClient,callbackIntent)
                 unregisterReceiver(receiver)
             }
             else {

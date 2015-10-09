@@ -28,15 +28,16 @@ class ActivityRecognitionService : IntentService("activity-rec-service"), AnkoLo
             info("Activity detected: $activityText ($confidence)")
 
             // Send activity data to server
-            async {
+            /*async {
                 val sendData = listOf<IJsonable>(ActivityData(Date(), activityText))
                 println("Sending data in thread")
                 DataSender(Settings.endpoint).send(sendData.map { it.toJson() }.joinToString(",","[","]"))
-            }
+            }*/
 
             // Notify MainActivity about new activity via broadcast
             val bcIntent = Intent("ImActive")
             bcIntent.putExtra("activity", activityText)
+            Settings.currentActivity = activityText
             bcIntent.putExtra("confidence", confidence)
 
             sendBroadcast(bcIntent)
