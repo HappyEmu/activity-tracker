@@ -1,33 +1,66 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/rootLayout"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical"
-    android:padding="20dip">
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:padding="16dp">
 
-    <EditText
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter API endpoint address"
-        android:id="@+id/txt_api_endpoint"/>
+        android:id="@+id/linearLayout2"
+        android:layout_marginBottom="16dp">
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="@android:style/TextAppearance.DeviceDefault.Small"
+            android:text="URL:"
+            android:id="@+id/lbl_url" />
 
-    <Button
+        <EditText
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/txt_url"
+            android:inputType="textUri" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Start service"
-        android:id="@+id/btn_start_service"/>
+        android:weightSum="1"
+        android:id="@+id/linearLayout"
+        android:layout_below="@+id/linearLayout2"
+        android:layout_alignParentStart="true">
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="End Service"
-        android:id="@+id/btn_stop_service" />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start Tracking"
+            android:id="@+id/btn_start"
+            android:layout_weight="0.5" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stop Tracking"
+            android:id="@+id/btn_stop"
+            android:layout_weight="0.5" />
+    </LinearLayout>
+
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAlignment="center"
-        android:paddingTop="20dp"
-        android:id="@+id/lbl_status"/>
+        android:layout_height="match_parent"
+        android:id="@+id/txt_history"
+        android:layout_below="@+id/linearLayout"
+        android:layout_alignParentStart="true"
+        android:freezesText="true"
+        android:layout_marginTop="16dp"
+        android:textSize="10sp"
+        android:textIsSelectable="true"
+        android:maxLines="2048"
+        android:scrollbars="vertical"/>
 
-</LinearLayout>
+</RelativeLayout>

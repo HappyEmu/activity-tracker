@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.widget.Button
@@ -16,11 +15,14 @@ import android.widget.TextView
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
+import com.google.android.gms.common.api.GoogleApiClient.*
 import com.google.android.gms.location.ActivityRecognition
 import org.jetbrains.anko.*
+import java.text.SimpleDateFormat
+import java.util.*
 
-class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
-    var lblStatus: TextView? = null
+class MainActivity : Activity(), ConnectionCallbacks, OnConnectionFailedListener, AnkoLogger {
+    var txtHistory: TextView? = null
     var gApiClient: GoogleApiClient? = null
     var receiver: BroadcastReceiver? = null
 
@@ -30,19 +32,22 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks, GoogleApiC
 
         Settings.load(ctx)
 
-        lblStatus = find<TextView>(R.id.lbl_status)
-        lblStatus?.text = "false"
-        val txtEndPoint = find<EditText>(R.id.txt_api_endpoint)
+        txtHistory = find<TextView>(R.id.txt_history)
+
+        val txtEndPoint = find<EditText>(R.id.txt_url)
         txtEndPoint.setText(Settings.endpoint)
 
         // Set up UI
-        find<Button>(R.id.btn_start_service).onClick {
+        find<Button>(R.id.btn_start).onClick {
             val endPointAddress = txtEndPoint.text.toString()
             Settings.endpoint = endPointAddress
             Settings.save(ctx)
             startService(intentFor<SensorService>())
         }
-        find<Button>(R.id.btn_stop_service).onClick { stopService(intentFor<SensorService>()) }
+
+        find<Button>(R.id.btn_stop).onClick {
+            stopService(intentFor<SensorService>())
+        }
 
         // Connect to play services
         if (isPlayServiceAvailable()) {
@@ -61,7 +66,7 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks, GoogleApiC
                 val activity = intent?.getStringExtra("activity")
                 val confidence = intent?.getIntExtra("confidence", -1)
 
-                find<TextView>(R.id.lbl_status).text = "New activity: $activity with $confidence"
+                find<TextView>(R.id.txt_history).append("\n${Date().format("HH:mm:ss")}: $activity @ $confidence%")
             }
         }
 
@@ -93,24 +98,26 @@ class MainActivity : Activity(), GoogleApiClient.ConnectionCallbacks, GoogleApiC
 
     override fun onConnected(bundle: Bundle?) {
         val intent = intentFor<ActivityRecognitionService>()
-        val pendingIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val callbackIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(gApiClient, 0, pendingIntent)
+        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(gApiClient, 0, callbackIntent)
         toast("Waiting for recognition")
     }
 
-    override fun onConnectionSuspended(p0: Int) {
-        Log.d("BLABLA", "Suspended to ActivityRecognition")
+    override fun onConnectionSuspended(cause: Int) {
+        info("Play Service connection was suspended. Cause: $cause")
     }
 
     override fun onConnectionFailed(result: ConnectionResult?) {
-        Log.d("BLABLA", "Not connected to ActivityRecognition")
+        info("Not connected to ActivityRecognition")
     }
 
     override fun onDestroy() {
+        info("onDestroy")
         super.onDestroy()
         gApiClient?.disconnect()
         unregisterReceiver(receiver)
+        info("receiver unregistered")
     }
 
     private fun isPlayServiceAvailable(): Boolean {

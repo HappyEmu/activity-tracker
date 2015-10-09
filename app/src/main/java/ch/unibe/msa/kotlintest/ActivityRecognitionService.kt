@@ -4,10 +4,12 @@ import android.app.IntentService
 import android.content.Intent
 import com.google.android.gms.location.ActivityRecognitionResult;
 import com.google.android.gms.location.DetectedActivity;
+import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.async
+import org.jetbrains.anko.info
 import java.util.*
 
-class ActivityRecognitionService : IntentService("activity-rec-service") {
+class ActivityRecognitionService : IntentService("activity-rec-service"), AnkoLogger {
 
     override fun onCreate() {
         super.onCreate()
@@ -23,7 +25,7 @@ class ActivityRecognitionService : IntentService("activity-rec-service") {
             val activityText = mostProbableActivity.getActivityString()
             val confidence = mostProbableActivity.confidence
 
-            println("Activity detected: $activityText ($confidence)")
+            info("Activity detected: $activityText ($confidence)")
 
             // Send activity data to server
             async {

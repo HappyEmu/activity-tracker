@@ -5,10 +5,11 @@ import android.content.Intent
 import android.hardware.Sensor
 import android.hardware.SensorManager
 import android.os.IBinder
+import org.jetbrains.anko.AnkoLogger
 import org.jetbrains.anko.sensorManager
 import org.jetbrains.anko.toast
 
-class SensorService : Service() {
+class SensorService : Service(), AnkoLogger {
 
     var accelerometer: Sensor? = null
     val batchSender = BatchSender()
@@ -39,7 +40,7 @@ class SensorService : Service() {
     }
 
     override fun onBind(intent: Intent): IBinder? {
-        throw UnsupportedOperationException("Not yet implemented")
+        return null
     }
 
     override fun onDestroy() {

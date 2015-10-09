@@ -30,13 +30,3 @@ data class ActivityData(val timestamp: Date, val text: String) : IJsonable {
         return jsonObject("timestamp" to timestamp.toJsonDate(), "type" to "activity", "text" to text).toString()
     }
 }
-
-fun SensorEvent.toAccelData(): AccelerometerData {
-    val date = Date()
-    return AccelerometerData(date, this.values[0], this.values[1], this.values[2])
-}
-
-fun Date.toJsonDate(): String {
-    val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS")
-    return formatter.format(this)
-}
