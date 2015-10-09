@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.location.Location
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -17,14 +18,28 @@ import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.api.GoogleApiClient
 import com.google.android.gms.common.api.GoogleApiClient.*
 import com.google.android.gms.location.ActivityRecognition
+import com.google.android.gms.location.LocationListener
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationServices
 import org.jetbrains.anko.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-class MainActivity : Activity(), ConnectionCallbacks, OnConnectionFailedListener, AnkoLogger {
+class MainActivity : Activity(), ConnectionCallbacks, OnConnectionFailedListener, AnkoLogger, LocationListener {
+
+    fun handleUpdate(loc: Location?) {
+        find<TextView>(R.id.txt_history).append("\n${Date().format("HH:mm:ss")}: Loc: ${loc?.latitude}, ${loc?.longitude}")
+    }
+
+    override fun onLocationChanged(loc: Location?) {
+        handleUpdate(loc)
+    }
+
     var txtHistory: TextView? = null
     var gApiClient: GoogleApiClient? = null
     var receiver: BroadcastReceiver? = null
+    var locRequest: LocationRequest? = null
+    var tracking: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,27 +53,60 @@ class MainActivity : Activity(), ConnectionCallbacks, OnConnectionFailedListener
         txtEndPoint.setText(Settings.endpoint)
 
         // Set up UI
-        find<Button>(R.id.btn_start).onClick {
-            val endPointAddress = txtEndPoint.text.toString()
-            Settings.endpoint = endPointAddress
-            Settings.save(ctx)
-            startService(intentFor<SensorService>())
+        find<Button>(R.id.btn_toggle).onClick {
+            if(tracking){
+                find<TextView>(R.id.txt_history).append("\nTracking stopped")
+                tracking = false
+                find<Button>(R.id.btn_toggle).text = "Start Tracking"
+
+                //Stop GPS updates
+                LocationServices.FusedLocationApi.removeLocationUpdates(gApiClient, this)
+
+                //Stop Activity tracking
+                unregisterReceiver(receiver)
+            }
+            else {
+                find<TextView>(R.id.txt_history).append("\nTracking started")
+                tracking = true
+                find<Button>(R.id.btn_toggle).text = "Stop Tracking"
+
+                //Initialize activity tracking
+                val intent = intentFor<ActivityRecognitionService>()
+                val callbackIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+
+                ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(gApiClient, 0, callbackIntent)
+                toast("Waiting for recognition")
+                val filter = IntentFilter()
+                filter.addAction("ImActive")
+                registerReceiver(receiver, filter)
+
+                //Initialize GPS Updates
+                val endPointAddress = txtEndPoint.text.toString()
+                Settings.endpoint = endPointAddress
+                Settings.save(ctx)
+                LocationServices.FusedLocationApi.requestLocationUpdates(gApiClient, locRequest, this)
+            }
+
         }
 
-        find<Button>(R.id.btn_stop).onClick {
-            stopService(intentFor<SensorService>())
-        }
+
 
         // Connect to play services
         if (isPlayServiceAvailable()) {
             gApiClient = GoogleApiClient.Builder(this)
                     .addApi(ActivityRecognition.API)
+                    .addApi(LocationServices.API)
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .build()
 
             //Connect to Google API
             gApiClient?.connect()
+
+            locRequest = LocationRequest.create()
+                    .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                    .setInterval(10 * 1000)        // 10 seconds, in milliseconds
+                    .setFastestInterval(1 * 1000) // 1 second, in milliseconds
         }
 
         receiver = object : BroadcastReceiver() {
@@ -70,9 +118,8 @@ class MainActivity : Activity(), ConnectionCallbacks, OnConnectionFailedListener
             }
         }
 
-        val filter = IntentFilter()
-        filter.addAction("ImActive")
-        registerReceiver(receiver, filter)
+
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -97,11 +144,14 @@ class MainActivity : Activity(), ConnectionCallbacks, OnConnectionFailedListener
     }
 
     override fun onConnected(bundle: Bundle?) {
-        val intent = intentFor<ActivityRecognitionService>()
-        val callbackIntent = PendingIntent.getService(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(gApiClient, 0, callbackIntent)
-        toast("Waiting for recognition")
+
+        val location = LocationServices.FusedLocationApi.getLastLocation(gApiClient)
+        /*if (location != null) {
+            handleUpdate(location)
+        }*/
+
+
     }
 
     override fun onConnectionSuspended(cause: Int) {
@@ -116,7 +166,7 @@ class MainActivity : Activity(), ConnectionCallbacks, OnConnectionFailedListener
         info("onDestroy")
         super.onDestroy()
         gApiClient?.disconnect()
-        unregisterReceiver(receiver)
+
         info("receiver unregistered")
     }
 
