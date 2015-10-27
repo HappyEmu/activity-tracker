@@ -6,6 +6,7 @@ object Settings {
     var endpoint: String = "localhost"
     var username: String = "defaultUser"
     var password: String = "defaultPass"
+    var currentActivity: String = "UNKNOWN"
 
     fun save(context: Context) {
         val content = "$username;$password;$endpoint"

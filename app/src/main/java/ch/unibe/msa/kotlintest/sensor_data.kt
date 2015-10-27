@@ -1,6 +1,7 @@
 package ch.unibe.msa.kotlintest
 
 import android.hardware.SensorEvent
+import android.location.Location
 import com.github.salomonbrys.kotson.jsonObject
 import java.text.SimpleDateFormat
 import java.util.*
@@ -18,12 +19,13 @@ data class AccelerometerData(val timestamp: Date,
 }
 
 data class GpsData(val timestamp: Date,
-                   val lat: String, val long: String) : IJsonable {
+                   val loc: Location?, val activity: String) : IJsonable {
     override fun toJson(): String {
         return jsonObject("timestamp" to timestamp.toJsonDate(), "type" to "location",
-                "lat" to lat, "long" to long).toString()
+                "lat" to loc?.latitude, "long" to loc?.longitude, "activity" to activity).toString()
     }
 }
+
 
 data class ActivityData(val timestamp: Date, val text: String) : IJsonable {
     override fun toJson(): String {
